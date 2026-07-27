@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StaffStay | Hospedagem Exclusiva para Hoteleiros</title>
+  <meta name="description" content="Plataforma exclusiva de distribuição de inventário hoteleiro para profissionais da indústria da hospedagem.">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .gallery-photo:hover {
+      transform: scale(1.04);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="glass-nav">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo" onclick="backToListScreen()">
+        <div class="brand-icon">S</div>
+        StaffStay <span style="font-size: 0.7rem; color: var(--color-tertiary); background: var(--color-primary); padding: 2px 8px; border-radius: 20px; font-weight: 800; margin-left: 4px;">APP</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link active">Explorar</a></li>
+        <li><a href="hotel-panel.html" class="nav-link">Painel B2B</a></li>
+        <li><a href="admin-panel.html" class="nav-link">Governança</a></li>
+      </ul>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="user-badge">
+          <span>👤 Pedro H.</span>
+          <span class="tier-pill">GOLD STAFF</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN 1: LIST VIEW (Busca e Lista de Hotéis) -->
+  <div id="screen-list-view">
+    <main class="container">
+      <section class="hero-section">
+        <h1 class="hero-title">Hospedagem Exclusiva nos Melhores Hotéis</h1>
+        <p class="hero-subtitle">Conectando quartos ociosos aos profissionais que fazem a hotelaria acontecer. Canal 100% privado e verificado.</p>
+
+        <!-- Advanced Search Bar -->
+        <div class="search-box">
+          <div class="search-field">
+            <span class="search-label">Destino ou Hotel</span>
+            <input type="text" id="search-city" class="search-input" placeholder="Ex: Búzios, Gramado, SP..." onkeyup="handleSearch()">
+          </div>
+
+          <div class="search-field">
+            <span class="search-label">Check-in</span>
+            <input type="date" class="search-input" value="2026-08-10">
+          </div>
+
+          <div class="search-field">
+            <span class="search-label">Check-out</span>
+            <input type="date" class="search-input" value="2026-08-13">
+          </div>
+
+          <div class="search-field">
+            <span class="search-label">Hóspedes Staff</span>
+            <input type="text" class="search-input" value="2 Hóspedes (Pré-setado)">
+          </div>
+
+          <button class="btn-primary" onclick="handleSearch()">
+            <span style="font-size: 1.1rem;">🔍</span> Buscar Vagas
+          </button>
+        </div>
+      </section>
+
+      <!-- Key Advantages Banner -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0 40px;">
+        <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 2.2rem; color: var(--color-primary);">🛡️</div>
+          <div>
+            <h4 style="font-weight: 800; font-size: 1rem;">Canal 100% Fechado & Seguro</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Acesso exclusivo para profissionais com vínculo verificado no setor hoteleiro.</p>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 2.2rem; color: var(--accent-cyan);">⚡</div>
+          <div>
+            <h4 style="font-weight: 800; font-size: 1rem;">Sincronização Direta PMS</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Integração em tempo real com Omnibees, Desbravador, CMNet e Cloudbeds.</p>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 2.2rem; color: var(--accent-emerald);">📸</div>
+          <div>
+            <h4 style="font-weight: 800; font-size: 1rem;">Biometria & Check-in QR Code</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Validação facial em 128 pontos e emissão instantânea do voucher digital.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hotel List Section -->
+      <section>
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Hospedagens em Destaque</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Quartos liberados com autorização direta das gerências parceiras.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" style="font-size: 0.8rem; padding: 8px 14px;">Todos os Destinos</button>
+            <button class="btn-secondary" style="font-size: 0.8rem; padding: 8px 14px;">Resorts & Lazer</button>
+          </div>
+        </div>
+
+        <div id="hotels-grid" class="hotels-grid">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCREEN 2: FULL-PAGE HOTEL DETAIL VIEW (Tela Inteira Dedicada do Hotel) -->
+  <div id="screen-detail-view" style="display: none; padding-top: 16px; padding-bottom: 60px;" class="container">
+    <!-- Rendered dynamically by app.js in Full Screen Mode -->
+  </div>
+
+  <!-- Footer Limpo & Moderno -->
+  <footer style="border-top: 1px solid var(--glass-border); padding: 36px 0; margin-top: 60px; text-align: center; color: var(--text-muted); font-size: 0.88rem; background: #FFFFFF;">
+    <div class="container">
+      <p style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">StaffStay Tecnologia da Informação S.A. © 2026</p>
+      <p style="font-size: 0.82rem;">Todos os direitos reservados. Ecossistema exclusivo de viagens para a indústria hoteleira.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+# ================================================================
+# DOCKER COMPOSE — Desenvolvimento Local
+# Sobe o backend Node.js conectando ao PostgreSQL do EasyPanel
+# (ou a um Postgres local para testes)
+# ================================================================
+
+version: '3.9'
+
+services:
+
+  # ── Backend API ─────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: deps   # Usa stage de deps para ter nodemon disponível
+    image: staffstay-api:dev
+    container_name: staffstay_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Use o banco remoto do EasyPanel (via internet) OU o local abaixo
+      DATABASE_URL: ${DATABASE_URL:-postgres://postpermuta:142635Pe@localhost:5432/postpermuta?sslmode=disable}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_production_min_64_chars_xxxxxxxxxxx}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change_in_production_min_64_chars_yyy}
+      BCRYPT_ROUNDS: "10"   # Menor no dev para ser mais rápido
+      CORS_ORIGIN: "http://localhost:5500,http://127.0.0.1:5500"
+    volumes:
+      # Hot reload em desenvolvimento
+      - ./backend/src:/app/src:ro
+    networks:
+      - staffstay_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── PostgreSQL Local (opcional — para testes offline) ────────────
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: staffstay_db_local
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: postpermuta
+  #     POSTGRES_PASSWORD: 142635Pe
+  #     POSTGRES_DB: postpermuta
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #     - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+  #   networks:
+  #     - staffstay_network
+
+  # ── Frontend Estático (nginx) ────────────────────────────────────
+  frontend:
+    image: nginx:alpine
+    container_name: staffstay_frontend
+    restart: unless-stopped
+    ports:
+      - "5500:80"
+    volumes:
+      - ./app:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - staffstay_network
+    depends_on:
+      - api
+
+networks:
+  staffstay_network:
+    driver: bridge
+
+# volumes:
+#   pg_data:

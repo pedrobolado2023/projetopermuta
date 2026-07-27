@@ -1,0 +1,44 @@
+# ================================================================
+# .gitignore — Plataforma de Permuta Hoteleira (StaffStay)
+# ================================================================
+
+# ── Node.js ────────────────────────────────────────────────────
+backend/node_modules/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# ── Variáveis de Ambiente (NUNCA commitar o .env real!) ────────
+backend/.env
+.env
+.env.local
+.env.*.local
+
+# ── Build / Cache ──────────────────────────────────────────────
+dist/
+build/
+.cache/
+*.tgz
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── IDE / Editors ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Docker ────────────────────────────────────────────────────
+*.env.docker
+
+# ── Uploads / Media temporários ───────────────────────────────
+uploads/
+tmp/

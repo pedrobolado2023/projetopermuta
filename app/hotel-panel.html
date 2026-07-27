@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Painel do Hotel Partner | StaffStay (B2B SaaS)</title>
+  <meta name="description" content="Painel de gestão de Allotment e automação PMS para hotéis parceiros.">
+  <meta name="theme-color" content="#0F172A">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="glass-nav">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon">S</div>
+        StaffStay <span style="font-size: 0.7rem; color: var(--color-tertiary); background: var(--color-primary); padding: 2px 8px; border-radius: 20px; font-weight: 800; margin-left: 4px;">HOTEL PANEL</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Visão Hóspede</a></li>
+        <li><a href="hotel-panel.html" class="nav-link active">Painel B2B</a></li>
+        <li><a href="admin-panel.html" class="nav-link">Governança</a></li>
+      </ul>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="user-badge" style="border-color: var(--color-primary);">
+          <span>🏨 Grand Palace Resort</span>
+          <span style="background: var(--color-primary); color: var(--color-tertiary);" class="tier-pill">PMS ONLINE</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 28px; padding-bottom: 60px;">
+    <!-- Dashboard Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 2rem;">Dashboard do Hotel Partner</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Gestão de Allotment e sincronização com PMS Omnibees XML.</p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-secondary" onclick="alert('Iniciando sincronização forçada com Omnibees XML...')">🔄 Sincronizar PMS</button>
+        <button class="btn-primary" onclick="alert('Abertura de Allotment de Emergência ativada!')">⚡ Liberação IA</button>
+      </div>
+    </div>
+
+    <!-- Metrics Cards Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Quartos Alocados (Mês)</div>
+        <div class="metric-value">142 diárias</div>
+        <div class="metric-trend">▲ +34% ocupação marginal</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">Taxa de Ocupação Gerada</div>
+        <div class="metric-value">18,5%</div>
+        <div class="metric-trend" style="color: var(--accent-cyan);">Redução de apartamentos vagos</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">Hóspedes Staff Recebidos</div>
+        <div class="metric-value">58 Hóspedes</div>
+        <div class="metric-trend" style="color: var(--accent-emerald);">100% validados por biometria</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">Allotment Ativo Hoje</div>
+        <div class="metric-value" style="color: var(--accent-gold);">4 / 6 UH</div>
+        <div class="metric-trend" style="color: var(--text-muted);">2 reservas hoje</div>
+      </div>
+    </div>
+
+    <!-- Allotment Management & Calendar Grid -->
+    <div class="glass-panel" style="padding: 24px; margin-bottom: 32px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3>Controle Diário de Allotment</h3>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Ajuste a quantidade de quartos liberados para a rede de hoteleiros.</p>
+        </div>
+        <span style="font-size: 0.82rem; background: #CCFBF1; color: #115E59; padding: 6px 14px; border-radius: 20px; font-weight: 800;">Conector: Omnibees XML (Auto-sync: On)</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo de Quarto</th>
+              <th>Inventário Total</th>
+              <th>Disponível Staff</th>
+              <th>Vendidos</th>
+              <th>Tarifa Quarto</th>
+              <th>Status Bloqueio</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>10/08/2026 (Seg)</strong></td>
+              <td>Deluxe Vista Mar</td>
+              <td>10 UH</td>
+              <td><strong style="color: var(--color-primary);">4 UH</strong></td>
+              <td>2 UH</td>
+              <td><span style="color: var(--accent-emerald); font-weight: 700;">R$ 0,00 (ISENTO)</span></td>
+              <td><span class="status-tag status-active">LIBERADO</span></td>
+              <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alert('Allotment atualizado!')">Editar</button></td>
+            </tr>
+            <tr>
+              <td><strong>11/08/2026 (Ter)</strong></td>
+              <td>Deluxe Vista Mar</td>
+              <td>10 UH</td>
+              <td><strong style="color: var(--color-primary);">5 UH</strong></td>
+              <td>1 UH</td>
+              <td><span style="color: var(--accent-emerald); font-weight: 700;">R$ 0,00 (ISENTO)</span></td>
+              <td><span class="status-tag status-active">LIBERADO</span></td>
+              <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alert('Allotment atualizado!')">Editar</button></td>
+            </tr>
+            <tr>
+              <td><strong>12/08/2026 (Qua)</strong></td>
+              <td>Deluxe Vista Mar</td>
+              <td>10 UH</td>
+              <td><strong style="color: var(--color-primary);">6 UH</strong></td>
+              <td>0 UH</td>
+              <td><span style="color: var(--accent-emerald); font-weight: 700;">R$ 0,00 (ISENTO)</span></td>
+              <td><span class="status-tag status-active">LIBERADO</span></td>
+              <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alert('Allotment atualizado!')">Editar</button></td>
+            </tr>
+            <tr>
+              <td><strong>15/08/2026 (Sáb)</strong></td>
+              <td>Deluxe Vista Mar</td>
+              <td>10 UH</td>
+              <td>0 UH</td>
+              <td>0 UH</td>
+              <td>-</td>
+              <td><span class="status-tag status-danger">BLACKOUT</span></td>
+              <td><button class="btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alert('Blackout removido!')">Desbloquear</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Bookings & Digital Check-in Scanner -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3>Reservas Confirmadas (Recepção)</h3>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Hóspedes com verificação biométrica concluída prontos para check-in.</p>
+        </div>
+        <button class="btn-primary" onclick="alert('Abra a câmera do celular/tablet da recepção para escanear o QR Code do Voucher.')">📷 Escanear QR Code Hóspede</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Código Reserva</th>
+              <th>Hóspede Staff</th>
+              <th>Empresa / Hotel Empregador</th>
+              <th>Período</th>
+              <th>Status Reserva</th>
+              <th>Status Check-in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--color-primary);">STAFF-8849-FREE</strong></td>
+              <td>Pedro Henrique Pereira</td>
+              <td>Grand Hyatt São Paulo (RM)</td>
+              <td>10/08 a 13/08 (3 diárias)</td>
+              <td><strong style="color: var(--accent-emerald);">CONFIRMADO</strong></td>
+              <td><span class="status-tag status-pending">AGUARDANDO</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--color-primary);">STAFF-7712-FREE</strong></td>
+              <td>Mariana Souza Santos</td>
+              <td>Fasano Rio de Janeiro (Recepção)</td>
+              <td>08/08 a 10/08 (2 diárias)</td>
+              <td><strong style="color: var(--accent-emerald);">CONFIRMADO</strong></td>
+              <td><span class="status-tag status-active">CHECKED-IN</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer style="border-top: 1px solid var(--glass-border); padding: 30px 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; background: #FFFFFF;">
+    StaffStay Tecnologia da Informação S.A. © 2026. Todos os direitos reservados.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
