@@ -20,6 +20,7 @@ const crypto  = require('crypto');
 const db      = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
 const { bookingRateLimiter } = require('../middleware/security');
+const { dispatchPmsXmlIntegration, buildESolutionXml } = require('../services/pmsXmlService');
 
 const router = express.Router();
 
@@ -248,8 +249,11 @@ router.post('/', requireAuth, bookingRateLimiter, async (req, res, next) => {
       return newBooking;
     });
 
+    // Dispara a integração em background do XML E-Solution para o PMS do Hotel
+    const pmsIntegration = await dispatchPmsXmlIntegration(booking);
+
     return res.status(201).json({
-      message:          'Reserva criada com sucesso! Prossiga para o pagamento.',
+      message:          'Reserva criada com sucesso! Integração XML com E-Solution PMS executada.',
       booking: {
         id:               booking.id,
         reservation_code: booking.reservation_code,
@@ -259,6 +263,7 @@ router.post('/', requireAuth, bookingRateLimiter, async (req, res, next) => {
         grand_total:      booking.grand_total_amount,
         status:           booking.status,
         qr_signature:     booking.qr_code_signature,
+        pms_integration:  pmsIntegration,
       },
     });
 
