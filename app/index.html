@@ -55,17 +55,22 @@
 
           <div class="search-field">
             <span class="search-label">Check-in</span>
-            <input type="date" class="search-input" value="2026-08-10">
+            <input type="date" id="search-checkin" class="search-input" value="2026-08-10" onchange="handleSearch()">
           </div>
 
           <div class="search-field">
             <span class="search-label">Check-out</span>
-            <input type="date" class="search-input" value="2026-08-13">
+            <input type="date" id="search-checkout" class="search-input" value="2026-08-13" onchange="handleSearch()">
           </div>
 
           <div class="search-field">
             <span class="search-label">Hóspedes Staff</span>
-            <input type="text" class="search-input" value="2 Hóspedes (Pré-setado)">
+            <select id="search-guests" class="search-input" onchange="handleSearch()" style="background: transparent; border: none; cursor: pointer; font-weight: 700; color: var(--color-primary);">
+              <option value="1">1 Hóspede (Individual)</option>
+              <option value="2" selected>2 Hóspedes (Casal / Duplo)</option>
+              <option value="3">3 Hóspedes (Triplo)</option>
+              <option value="4">4 Hóspedes (Família / 4 Pessoas)</option>
+            </select>
           </div>
 
           <button class="btn-primary" onclick="handleSearch()">

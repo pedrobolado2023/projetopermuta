@@ -161,19 +161,39 @@ let state = {
 };
 
 // Render B2C Hotels Grid (List Screen)
-function renderHotelsGrid(filterCity = "") {
+function renderHotelsGrid(filterCity = "", checkIn = null, checkOut = null, guestsCount = 2) {
   const container = document.getElementById("hotels-grid");
   if (!container) return;
 
-  const filtered = state.hotels.filter(h => 
-    !filterCity || h.city.toLowerCase().includes(filterCity.toLowerCase()) || h.name.toLowerCase().includes(filterCity.toLowerCase())
-  );
+  const cityTerm = filterCity ? filterCity.trim().toLowerCase() : "";
+
+  const filtered = state.hotels.filter(hotel => {
+    // 1. Filtro por Cidade, Estado ou Nome
+    const matchLocation = !cityTerm || 
+      hotel.city.toLowerCase().includes(cityTerm) || 
+      hotel.state.toLowerCase().includes(cityTerm) || 
+      hotel.name.toLowerCase().includes(cityTerm) ||
+      hotel.category.toLowerCase().includes(cityTerm);
+
+    // 2. Filtro por Capacidade de Hóspedes
+    const matchGuests = hotel.maxOccupancy >= guestsCount;
+
+    // 3. Filtro por Vagas Disponíveis
+    const hasAllotment = hotel.allotmentAvailable > 0;
+
+    return matchLocation && matchGuests && hasAllotment;
+  });
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;" class="glass-panel">
-        <h3>Nenhum hotel encontrado para "${filterCity}"</h3>
-        <p style="color: var(--text-muted); margin-top: 8px;">Tente buscar por "Búzios", "Gramado", "Porto de Galinhas" ou "São Paulo".</p>
+      <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px;" class="glass-panel">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+        <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Nenhum hotel disponível para esta busca</h3>
+        <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">
+          Não encontramos vagas para <strong>${guestsCount} hóspede(s)</strong> ${cityTerm ? `em "${filterCity}"` : ''}.<br>
+          Tente buscar por "Búzios", "Gramado", "Porto de Galinhas" ou reduzir o número de hóspedes.
+        </p>
+        <button class="btn-secondary" onclick="resetSearchFilters()">🔄 Limpar Filtros de Busca</button>
       </div>
     `;
     return;
@@ -187,7 +207,7 @@ function renderHotelsGrid(filterCity = "") {
         <span class="allotment-counter">🔥 Restam ${hotel.allotmentAvailable} Vagas</span>
       </div>
       <div class="hotel-info">
-        <div class="hotel-location">📍 ${hotel.city}, ${hotel.state}</div>
+        <div class="hotel-location">📍 ${hotel.city}, ${hotel.state} • Até ${hotel.maxOccupancy} Hóspedes</div>
         <h3 class="hotel-name">${hotel.name}</h3>
         <div class="hotel-rating">
           <span>★ ${hotel.rating}</span>
@@ -672,10 +692,48 @@ function renderVoucherContent() {
 
 // Search Handler
 function handleSearch() {
-  const input = document.getElementById("search-city");
-  if (input) {
-    renderHotelsGrid(input.value);
+  const cityInput = document.getElementById("search-city");
+  const checkInInput = document.getElementById("search-checkin");
+  const checkOutInput = document.getElementById("search-checkout");
+  const guestsSelect = document.getElementById("search-guests");
+
+  const filterCity = cityInput ? cityInput.value : "";
+  const checkIn = checkInInput ? checkInInput.value : state.selectedDates.checkIn;
+  const checkOut = checkOutInput ? checkOutInput.value : state.selectedDates.checkOut;
+  const guestsCount = guestsSelect ? parseInt(guestsSelect.value, 10) : 2;
+
+  // Validação simples de datas
+  if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
+    // Se checkout for menor que checkin, ajusta automaticamente para +1 dia
+    const nextDay = new Date(checkIn);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const newCheckOut = nextDay.toISOString().split('T')[0];
+    if (checkOutInput) checkOutInput.value = newCheckOut;
+    state.selectedDates.checkOut = newCheckOut;
+  } else {
+    state.selectedDates.checkIn = checkIn;
+    state.selectedDates.checkOut = checkOut;
   }
+
+  state.guestsCount = guestsCount;
+  renderHotelsGrid(filterCity, state.selectedDates.checkIn, state.selectedDates.checkOut, guestsCount);
+}
+
+function resetSearchFilters() {
+  const cityInput = document.getElementById("search-city");
+  const checkInInput = document.getElementById("search-checkin");
+  const checkOutInput = document.getElementById("search-checkout");
+  const guestsSelect = document.getElementById("search-guests");
+
+  if (cityInput) cityInput.value = "";
+  if (checkInInput) checkInInput.value = "2026-08-10";
+  if (checkOutInput) checkOutInput.value = "2026-08-13";
+  if (guestsSelect) guestsSelect.value = "2";
+
+  state.selectedDates = { checkIn: "2026-08-10", checkOut: "2026-08-13" };
+  state.guestsCount = 2;
+
+  renderHotelsGrid("", "2026-08-10", "2026-08-13", 2);
 }
 
 /* ==========================================================================
