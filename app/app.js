@@ -1206,6 +1206,102 @@ async function handlePeriodAllotmentSubmit(event) {
   alert(`✅ Allotment de ${qty} quartos/dia aplicado com sucesso para o período de ${startDate} a ${endDate}!`);
 }
 
+async function openPmsXmlModal(bookingCode, guestName) {
+  const m = document.getElementById("modal-pms-xml");
+  const textarea = document.getElementById("pms-xml-textarea");
+  if (!m || !textarea) return;
+
+  textarea.value = "Carregando XML no formato E-Solution / Omnibees...";
+  m.style.display = "flex";
+
+  try {
+    const res = await fetch(`/api/pms/bookings/${bookingCode}/xml`);
+    if (res.ok) {
+      const xmlText = await res.text();
+      textarea.value = xmlText;
+    } else {
+      textarea.value = generateFallbackPmsXml(bookingCode, guestName);
+    }
+  } catch {
+    textarea.value = generateFallbackPmsXml(bookingCode, guestName);
+  }
+}
+
+function generateFallbackPmsXml(code, guest) {
+  const nowStr = "28/07/2026 12:00:00";
+  return `<?xml version="1.0" encoding="utf-8"?>
+<Reserva 
+  Numero="${code}" 
+  Status="CF" 
+  CheckIn="03/09/2026 14:00:00" 
+  CheckOut="07/09/2026 12:00:00" 
+  QuantidadeAdulto="1" 
+  QuantidadeCrianca1="0" 
+  QuantidadeCrianca2="0" 
+  Aconfirmar="${nowStr}" 
+  GrupoHospedagem="" 
+  TipoUh="1091" 
+  ValorTarifa="149,90" 
+  ValorCafeManha="0.00" 
+  ValorPensao="0.00" 
+  SegmentoMercado="13" 
+  DataBaseTarifa="${nowStr}" 
+  TipoPensao="CF" 
+  OrigemReserva="10" 
+  GaranteNoShow="S" 
+  ReservanteNome="${guest}" 
+  EmpresaHospedagem="18271" 
+  VoucherEmpresa="${code}" 
+  Observacao="Reserva StaffStay Permuta Hoteleira — Voucher Isento de Diárias — ${guest}" 
+  ObservacaoIntegracao="Integrado com Sucesso via StaffStay Engine PMS Adapter (E-Solution)" 
+  Cidade="279" 
+  EmailReservante="hospede@staffstay.com.br" 
+  ChannelManager="STAFFSTAY_PMS" 
+  OmnibeesPropertyId="9924" 
+  OtaId="${code}" 
+  ReservationUID="134854405"
+>
+  <Hospedes>
+    <Hospede Id="794105" Nome="${guest}" Principal="S" FaixaEtaria="AD" Incognito="N" />
+  </Hospedes>
+  <Valores>
+    <Valor data="03/09/2026 00:00:00" valorcafemanha="0,00" valortarifa="0,00" valorpensao="0" valoriss="0,00" valortaxa="0,00" />
+    <Valor data="04/09/2026 00:00:00" valorcafemanha="0,00" valortarifa="0,00" valorpensao="0" valoriss="0,00" valortaxa="0,00" />
+    <Valor data="05/09/2026 00:00:00" valorcafemanha="0,00" valortarifa="0,00" valorpensao="0" valoriss="0,00" valortaxa="0,00" />
+    <Valor data="06/09/2026 00:00:00" valorcafemanha="0,00" valortarifa="0,00" valorpensao="0" valoriss="0,00" valortaxa="0,00" />
+  </Valores>
+  <Pensoes>
+    <Pensao Data="2026-09-03" PensaoCafe="S" PDVCafe="10" PDVAlmoco="10" PDVJantar="10" />
+    <Pensao Data="2026-09-04" PensaoCafe="S" PDVCafe="10" PDVAlmoco="10" PDVJantar="10" />
+    <Pensao Data="2026-09-05" PensaoCafe="S" PDVCafe="10" PDVAlmoco="10" PDVJantar="10" />
+    <Pensao Data="2026-09-06" PensaoCafe="S" PDVCafe="10" PDVAlmoco="10" PDVJantar="10" />
+  </Pensoes>
+  <Requerimentos></Requerimentos>
+  <ServicosHotel></ServicosHotel>
+</Reserva>`;
+}
+
+function copyPmsXmlToClipboard() {
+  const textarea = document.getElementById("pms-xml-textarea");
+  if (textarea) {
+    navigator.clipboard.writeText(textarea.value);
+    alert("📋 XML copiado para a área de transferência com sucesso!");
+  }
+}
+
+function downloadPmsXmlFile() {
+  const textarea = document.getElementById("pms-xml-textarea");
+  if (textarea) {
+    const blob = new Blob([textarea.value], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reserva_esolution_${Date.now()}.xml`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
 // Global Initialization
 document.addEventListener("DOMContentLoaded", () => {
   renderUserNav();

@@ -27,6 +27,7 @@ const authRoutes    = require('./routes/auth');
 const hotelRoutes   = require('./routes/hotels');
 const bookingRoutes = require('./routes/bookings');
 const adminRoutes   = require('./routes/admin');
+const pmsRoutes     = require('./routes/pms');
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
 const { globalRateLimiter } = require('./middleware/security');
@@ -109,6 +110,7 @@ app.use('/api/auth',     authRoutes);
 app.use('/api/hotels',   hotelRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin',    adminRoutes);
+app.use('/api/pms',      pmsRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

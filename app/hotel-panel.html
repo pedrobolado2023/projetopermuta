@@ -163,6 +163,7 @@
               <th>Período</th>
               <th>Status Reserva</th>
               <th>Status Check-in</th>
+              <th>Ações PMS</th>
             </tr>
           </thead>
           <tbody>
@@ -173,6 +174,9 @@
               <td>10/08 a 13/08 (3 diárias)</td>
               <td><strong style="color: var(--accent-emerald);">CONFIRMADO</strong></td>
               <td><span class="status-tag status-pending">AGUARDANDO</span></td>
+              <td>
+                <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 10px;" onclick="openPmsXmlModal('STAFF-8849-FREE', 'Pedro Henrique Pereira')">📄 XML E-Solution</button>
+              </td>
             </tr>
             <tr>
               <td><strong style="color: var(--color-primary);">STAFF-7712-FREE</strong></td>
@@ -181,6 +185,9 @@
               <td>08/08 a 10/08 (2 diárias)</td>
               <td><strong style="color: var(--accent-emerald);">CONFIRMADO</strong></td>
               <td><span class="status-tag status-active">CHECKED-IN</span></td>
+              <td>
+                <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 10px;" onclick="openPmsXmlModal('STAFF-7712-FREE', 'Mariana Souza Santos')">📄 XML E-Solution</button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -370,6 +377,27 @@
           Aplicar Allotment no Período ➔
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: VISUALIZADOR & EXPORTADOR XML PMS E-SOLUTION -->
+  <div id="modal-pms-xml" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 720px;">
+      <button class="modal-close-btn" onclick="closeB2bModal('modal-pms-xml')">✕</button>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <h2 style="font-size: 1.4rem;">Integração PMS — XML E-Solution / Omnibees</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Estrutura XML formatada para injeção direta no PMS do hotel.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">CONTEÚDO XML DA RESERVA (FORMATO E-SOLUTION / OMNIBEES)</label>
+        <textarea id="pms-xml-textarea" class="form-control" rows="12" style="font-family: monospace; font-size: 0.78rem; background: #0F172A; color: #38BDF8; line-height: 1.4;" readonly></textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button class="btn-secondary" style="flex: 1;" onclick="copyPmsXmlToClipboard()">📋 Copiar XML</button>
+        <button class="btn-primary" style="flex: 1;" onclick="downloadPmsXmlFile()">📥 Baixar Arquivo .XML</button>
+      </div>
     </div>
   </div>
 
