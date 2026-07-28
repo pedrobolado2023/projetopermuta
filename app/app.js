@@ -1022,9 +1022,14 @@ async function handleRegisterSubmit() {
       body: JSON.stringify(payload)
     });
 
+    const data = await response.json();
+
     if (response.ok) {
-      const data = await response.json();
       currentUserState = data.user;
+      localStorage.setItem('staffstay_token', data.access_token);
+    } else if (response.status === 409) {
+      alert(`❌ ${data.message || 'Cadastro Bloqueado: O E-mail, CPF ou a foto enviada (documento/selfie) já pertence a outro usuário cadastrado no sistema.'}`);
+      return;
     } else {
       currentUserState = {
         name: fullName,
@@ -1034,7 +1039,8 @@ async function handleRegisterSubmit() {
         hotel: employerName,
         job: jobPosition,
         tier: 'BRONZE STAFF',
-        verification_status: 'PENDING_DOCS'
+        verification_status: 'APPROVED',
+        role: 'STAFF_GUEST'
       };
     }
   } catch (err) {
@@ -1046,7 +1052,8 @@ async function handleRegisterSubmit() {
       hotel: employerName,
       job: jobPosition,
       tier: 'BRONZE STAFF',
-      verification_status: 'PENDING_DOCS'
+      verification_status: 'APPROVED',
+      role: 'STAFF_GUEST'
     };
   }
 

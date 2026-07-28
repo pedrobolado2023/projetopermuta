@@ -159,6 +159,8 @@ CREATE TABLE user_verifications (
     employment_proof_s3_path TEXT NOT NULL,
     
     ocr_extracted_data JSONB DEFAULT '{}',
+    doc_image_hash VARCHAR(64),
+    selfie_image_hash VARCHAR(64),
     facial_match_score DECIMAL(5,2),
     liveness_status BOOLEAN DEFAULT FALSE,
     rejection_reason TEXT,

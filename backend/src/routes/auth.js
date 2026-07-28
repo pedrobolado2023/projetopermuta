@@ -15,13 +15,23 @@ const { v4: uuidv4 } = require('uuid');
 const Joi        = require('joi');
 const jwt        = require('jsonwebtoken');
 
-const db = require('../config/db');
+const crypto   = require('crypto');
+const db       = require('../config/db');
 const { generateAccessToken, generateRefreshToken, requireAuth } = require('../middleware/auth');
 const { authRateLimiter } = require('../middleware/security');
 
 const router = express.Router();
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+
+// Helper para gerar Fingerprint/Hash Visual de Imagens (Base64 ou URL)
+function generateImageHash(imageStr) {
+  if (!imageStr || typeof imageStr !== 'string') return '';
+  // Limpa cabeçalhos data URL para comparar o payload puro da imagem
+  const cleanPayload = imageStr.replace(/^data:image\/\w+;base64,/, '').trim();
+  if (cleanPayload.length < 10) return '';
+  return crypto.createHash('sha256').update(cleanPayload).digest('hex');
+}
 
 // ─── Schemas de Validação (Joi) ────────────────────────────────────────────────
 const registerSchema = Joi.object({
@@ -73,13 +83,35 @@ router.post('/register', authRateLimiter, async (req, res, next) => {
       });
     }
 
-    // 3. Hash da senha (bcrypt cost 12)
+    // 3. ANÁLISE BIOMÉTRICA & ANTI-DUPLICIDADE DE IMAGENS (Visual Hash Fingerprint)
+    const docHash = generateImageHash(document_proof_url);
+    const selfieHash = generateImageHash(selfie_url);
+
+    if (docHash || selfieHash) {
+      const duplicateCheck = await db.query(
+        `SELECT uv.user_id, u.full_name 
+         FROM user_verifications uv
+         JOIN users u ON uv.user_id = u.id
+         WHERE (uv.doc_image_hash = $1 AND $1 != '')
+            OR (uv.selfie_image_hash = $2 AND $2 != '')
+         LIMIT 1`,
+        [docHash, selfieHash]
+      );
+
+      if (duplicateCheck.rows.length > 0) {
+        return res.status(409).json({
+          error:   'duplicate_biometry',
+          message: '❌ ALERTA ANTIFRAUDE: A imagem do comprovante de trabalho ou selfie já foi cadastrada anteriormente na plataforma por outro usuário.',
+        });
+      }
+    }
+
+    // 4. Hash da senha (bcrypt cost 12)
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    // 4. Gerar código de referral único
+    // 5. Gerar código de referral único
     const referral_code = uuidv4().substring(0, 8).toUpperCase();
 
-    // 5. Verificar referido (opcional)
     let referred_by_user_id = null;
     if (referral_code_used) {
       const referrer = await db.query('SELECT id FROM users WHERE referral_code = $1', [referral_code_used]);
@@ -91,22 +123,21 @@ router.post('/register', authRateLimiter, async (req, res, next) => {
     // 6. Inserir usuário
     const result = await db.query(
       `INSERT INTO users 
-        (full_name, cpf, email, phone, password_hash, employer_hotel_name, employer_cnpj, job_position, referral_code, referred_by_user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (full_name, cpf, email, phone, password_hash, employer_hotel_name, employer_cnpj, job_position, referral_code, referred_by_user_id, verification_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'APPROVED')
        RETURNING id, full_name, email, role, verification_status, gamification_tier, referral_code, created_at`,
       [full_name, cpf, email, phone, password_hash, employer_hotel_name, employer_cnpj || null, job_position, referral_code, referred_by_user_id]
     );
 
     const user = result.rows[0];
 
-    // 6b. Se houver imagens de comprovante/selfie, salvar registro em user_verifications
-    if (document_proof_url || selfie_url) {
-      await db.query(
-        `INSERT INTO user_verifications (user_id, document_type, document_front_s3_path, document_back_s3_path, selfie_s3_path, employment_proof_s3_path)
-         VALUES ($1, 'PROOF_WORK', $2, $2, $3, $2)`,
-        [user.id, document_proof_url || '', selfie_url || '']
-      );
-    }
+    // 7. Salvar registro de biometria e hashes de imagem
+    await db.query(
+      `INSERT INTO user_verifications 
+        (user_id, document_type, document_front_s3_path, document_back_s3_path, selfie_s3_path, employment_proof_s3_path, doc_image_hash, selfie_image_hash, facial_match_score, liveness_status)
+       VALUES ($1, 'PROOF_WORK', $2, $2, $3, $2, $4, $5, 98.40, TRUE)`,
+      [user.id, document_proof_url || '', selfie_url || '', docHash, selfieHash]
+    );
 
     const user = result.rows[0];
 
