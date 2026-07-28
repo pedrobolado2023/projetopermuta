@@ -1,25 +1,22 @@
 # ================================================================
 # PLATAFORMA PERMUTA — Frontend Dockerfile
-# Serve os arquivos estáticos da pasta app/ via Nginx Alpine.
-# Nginx escuta na porta 3000 (padrão do EasyPanel — sem config manual).
+# Serve arquivos estáticos via "serve" (Node.js).
+# Node.js é consistente com o setup do backend no EasyPanel.
+# Porta 3000 — padrão reconhecido pelo EasyPanel automaticamente.
 # ================================================================
 
-FROM nginx:1.27-alpine
+FROM node:20-alpine
 
-# Remove a config padrão do Nginx
-RUN rm /etc/nginx/conf.d/default.conf
+# Instala o pacote "serve" globalmente
+RUN npm install -g serve
 
-# Copia nossa config customizada
-COPY nginx.conf /etc/nginx/conf.d/app.conf
+WORKDIR /app
 
-# Copia os arquivos estáticos do frontend
-COPY index.html hotel-panel.html admin-panel.html app.js styles.css /usr/share/nginx/html/
+# Copia todos os arquivos estáticos do frontend
+COPY index.html hotel-panel.html admin-panel.html app.js styles.css ./
 
-# Porta 3000 — padrão do EasyPanel (evita configurar Port manualmente)
+# Porta padrão do EasyPanel
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:3000/ || exit 1
-
-CMD ["nginx", "-g", "daemon off;"]
+# Inicia o servidor estático na porta 3000
+CMD ["serve", "-s", ".", "-l", "3000"]
