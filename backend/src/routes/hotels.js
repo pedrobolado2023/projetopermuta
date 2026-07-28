@@ -10,7 +10,7 @@
 const express = require('express');
 const Joi     = require('joi');
 const db      = require('../config/db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -221,7 +221,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // ─── POST /api/hotels (Cadastro B2B de Hotel) ─────────────────────────────────
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, requireRole('HOTEL_ADMIN', 'SUPER_ADMIN'), async (req, res, next) => {
   try {
     const { corporate_name, cnpj, trade_name, category, description, email, phone, zip_code, address_line, city, state, legal_representative_name, legal_representative_cpf, pms_type, amenities, photos } = req.body;
 
@@ -249,7 +249,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // ─── POST /api/hotels/:id/rooms (Cadastro de Tipo de Quarto) ───────────────────
-router.post('/:id/rooms', async (req, res, next) => {
+router.post('/:id/rooms', requireAuth, requireRole('HOTEL_ADMIN', 'SUPER_ADMIN'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, description, max_occupancy, suggested_staff_rate, photos, amenities } = req.body;
@@ -272,7 +272,7 @@ router.post('/:id/rooms', async (req, res, next) => {
 });
 
 // ─── POST /api/hotels/:id/allotments (Alimentar Allotment por Período) ─────────
-router.post('/:id/allotments', async (req, res, next) => {
+router.post('/:id/allotments', requireAuth, requireRole('HOTEL_ADMIN', 'SUPER_ADMIN'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { room_type_id, start_date, end_date, quantity, nightly_rate, is_blackout } = req.body;

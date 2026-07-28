@@ -689,23 +689,149 @@ let uploadedSelfieData = null;
 
 function renderUserNav() {
   const container = document.getElementById("nav-auth-container");
-  if (!container) return;
+  if (container) {
+    if (currentUserState) {
+      const roleLabel = {
+        'SUPER_ADMIN': 'SUPER ADMIN',
+        'GOVERNANCE_AUDITOR': 'GOVERNANCE',
+        'HOTEL_ADMIN': 'HOTEL ADMIN',
+        'STAFF_GUEST': currentUserState.tier || 'GOLD STAFF'
+      }[currentUserState.role] || 'STAFF GUEST';
 
-  if (currentUserState) {
-    container.innerHTML = `
-      <div class="user-badge" style="cursor: pointer;" onclick="openAuthModal()">
-        <span>👤 ${currentUserState.full_name || currentUserState.name}</span>
-        <span class="tier-pill">${currentUserState.tier || 'GOLD STAFF'}</span>
-      </div>
-      <button class="btn-secondary" onclick="logoutUser()" style="font-size: 0.8rem; padding: 6px 12px; border-color: var(--accent-rose); color: var(--accent-rose);">Sair</button>
-    `;
-  } else {
-    container.innerHTML = `
-      <button class="btn-primary" onclick="openAuthModal()" style="font-size: 0.85rem; padding: 8px 18px;">
-        🔑 Entrar / Cadastrar
-      </button>
-    `;
+      container.innerHTML = `
+        <div class="user-badge" style="cursor: pointer;" onclick="openAuthModal()" title="Clique para gerenciar sua conta">
+          <span>👤 ${currentUserState.full_name || currentUserState.name}</span>
+          <span class="tier-pill">${roleLabel}</span>
+        </div>
+        <button class="btn-secondary" onclick="logoutUser()" style="font-size: 0.8rem; padding: 6px 12px; border-color: var(--accent-rose); color: var(--accent-rose);">Sair</button>
+      `;
+    } else {
+      container.innerHTML = `
+        <button class="btn-primary" onclick="openAuthModal()" style="font-size: 0.85rem; padding: 8px 18px;">
+          🔑 Entrar / Cadastrar
+        </button>
+      `;
+    }
   }
+
+  renderNavLinks();
+  enforcePageAccessControl();
+}
+
+function renderNavLinks() {
+  const navContainer = document.getElementById("main-nav-links");
+  if (!navContainer) return;
+
+  const path = window.location.pathname;
+  const isHome = path === '/' || path.endsWith('index.html') || path === '';
+  const isHotel = path.includes('hotel-panel');
+  const isAdmin = path.includes('admin-panel');
+
+  const role = currentUserState ? currentUserState.role : null;
+
+  let links = [
+    `<li><a href="/" class="nav-link ${isHome ? 'active' : ''}">Explorar</a></li>`
+  ];
+
+  // Painel B2B: disponível apenas para HOTEL_ADMIN e SUPER_ADMIN
+  if (role === 'HOTEL_ADMIN' || role === 'SUPER_ADMIN') {
+    links.push(`<li><a href="/hotel-panel" class="nav-link ${isHotel ? 'active' : ''}">Painel B2B</a></li>`);
+  }
+
+  // Governança: disponível apenas para SUPER_ADMIN e GOVERNANCE_AUDITOR
+  if (role === 'SUPER_ADMIN' || role === 'GOVERNANCE_AUDITOR') {
+    links.push(`<li><a href="/admin-panel" class="nav-link ${isAdmin ? 'active' : ''}">Governança</a></li>`);
+  }
+
+  navContainer.innerHTML = links.join('');
+}
+
+function enforcePageAccessControl() {
+  const path = window.location.pathname;
+  const mainElem = document.querySelector("main.container");
+  if (!mainElem) return;
+
+  const role = currentUserState ? currentUserState.role : null;
+
+  // ─── Proteção do Painel B2B do Hotel (/hotel-panel) ───────────────────────
+  if (path.includes('hotel-panel')) {
+    if (role !== 'HOTEL_ADMIN' && role !== 'SUPER_ADMIN') {
+      mainElem.innerHTML = `
+        <div style="max-width: 600px; margin: 60px auto; text-align: center;" class="glass-panel">
+          <div style="padding: 40px 24px;">
+            <div style="font-size: 3.5rem; margin-bottom: 12px;">🔒</div>
+            <h1 style="font-size: 1.8rem; color: var(--color-primary); margin-bottom: 10px;">Acesso Restrito ao Painel B2B</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+              Esta página é exclusiva para <strong>Administradores de Hotéis Parceiros</strong> validados.<br>
+              ${currentUserState ? `Sua conta atual (<strong>${currentUserState.full_name}</strong>) está cadastrada como <strong>Hóspede Staff</strong> e não possui permissão de gestão B2B.` : 'Você precisa estar autenticado como Administrador de Hotel para acessar este painel.'}
+            </p>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="loginAsDemoRole('HOTEL_ADMIN')">🔑 Entrar como Admin de Hotel (Demo)</button>
+              <a href="/" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">← Voltar para Explorar</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ─── Proteção da Central de Governança (/admin-panel) ──────────────────────
+  if (path.includes('admin-panel')) {
+    if (role !== 'SUPER_ADMIN' && role !== 'GOVERNANCE_AUDITOR') {
+      mainElem.innerHTML = `
+        <div style="max-width: 600px; margin: 60px auto; text-align: center;" class="glass-panel">
+          <div style="padding: 40px 24px;">
+            <div style="font-size: 3.5rem; margin-bottom: 12px;">🛡️</div>
+            <h1 style="font-size: 1.8rem; color: var(--accent-rose); margin-bottom: 10px;">Acesso Restrito à Governança</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+              Esta área é exclusiva para a equipe de <strong>Governança & SuperAdmin</strong> do sistema.<br>
+              ${currentUserState ? `Usuários com perfil <strong>${currentUserState.role}</strong> não possuem autorização de auditoria LGPD/antifraude.` : 'Você precisa estar autenticado com credenciais de SuperAdmin para visualizar esta central.'}
+            </p>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="loginAsDemoRole('SUPER_ADMIN')" style="background: var(--accent-rose);">🔑 Entrar como SuperAdmin (Demo)</button>
+              <a href="/" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">← Voltar para Explorar</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
+function loginAsDemoRole(targetRole) {
+  if (targetRole === 'HOTEL_ADMIN') {
+    currentUserState = {
+      id: "usr_hotel_admin_01",
+      full_name: "Carlos Alberto (Gerente Geral)",
+      email: "carlos@grandpalace.com.br",
+      role: "HOTEL_ADMIN",
+      hotel: "Grand Palace Resort Búzios",
+      tier: "HOTEL ADMIN"
+    };
+  } else if (targetRole === 'SUPER_ADMIN') {
+    currentUserState = {
+      id: "usr_super_admin_01",
+      full_name: "Compliance Master (SuperAdmin)",
+      email: "admin@staffstay.com.br",
+      role: "SUPER_ADMIN",
+      tier: "LEVEL 5 ADMIN"
+    };
+  } else {
+    currentUserState = {
+      id: "usr_guest_01",
+      full_name: "Pedro Henrique Pereira",
+      email: "pedro.pereira@hotelaria.com.br",
+      role: "STAFF_GUEST",
+      hotel: "Grand Hyatt São Paulo",
+      tier: "GOLD STAFF"
+    };
+  }
+
+  localStorage.setItem('staffstay_user', JSON.stringify(currentUserState));
+  renderUserNav();
+  window.location.reload();
 }
 
 function openAuthModal() {

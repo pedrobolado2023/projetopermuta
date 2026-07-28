@@ -26,10 +26,8 @@
         StaffStay <span style="font-size: 0.7rem; color: var(--color-tertiary); background: var(--color-primary); padding: 2px 8px; border-radius: 20px; font-weight: 800; margin-left: 4px;">APP</span>
       </a>
 
-      <ul class="nav-links">
+      <ul class="nav-links" id="main-nav-links">
         <li><a href="/" class="nav-link active">Explorar</a></li>
-        <li><a href="/hotel-panel" class="nav-link">Painel B2B</a></li>
-        <li><a href="/admin-panel" class="nav-link">Governança</a></li>
       </ul>
 
       <div style="display: flex; align-items: center; gap: 12px;" id="nav-auth-container">
@@ -167,6 +165,16 @@
         <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; margin-top: 10px;">
           Entrar na Plataforma ➔
         </button>
+
+        <!-- Atalhos de Perfil para Demonstração de Permissões (RBAC) -->
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--glass-border); text-align: center;">
+          <p style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; margin-bottom: 10px;">⚡ ATALHOS DE PERFIL PARA TESTAR PERMISSÕES:</p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="btn-secondary" style="font-size: 0.8rem; padding: 8px;" onclick="loginAsDemoRole('STAFF_GUEST')">👤 Hóspede Staff (Acesso Apenas ao Explorar)</button>
+            <button type="button" class="btn-secondary" style="font-size: 0.8rem; padding: 8px; border-color: var(--color-primary); color: var(--color-primary);" onclick="loginAsDemoRole('HOTEL_ADMIN')">🏨 Admin do Hotel (Acesso ao Painel B2B)</button>
+            <button type="button" class="btn-secondary" style="font-size: 0.8rem; padding: 8px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="loginAsDemoRole('SUPER_ADMIN')">🛡️ SuperAdmin (Acesso Total & Governança)</button>
+          </div>
+        </div>
       </form>
 
       <!-- ABA 2: CADASTRO DE HÓSPEDE STAFF EM 3 ETAPAS -->
