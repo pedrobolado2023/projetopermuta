@@ -57,6 +57,21 @@ function buildESolutionXml(booking) {
     );
   }
 
+  const jsonIntegracaoPayload = JSON.stringify({
+    UID: booking.id || 1001,
+    Number: reservationCode,
+    Channel: {
+      Name: "StaffStay",
+      ChannelCode: "STAFFSTAY",
+      Description: "Plataforma StaffStay — Permuta Hoteleira Exclusiva"
+    },
+    Date: nowStr,
+    TotalAmount: parseFloat(booking.grand_total_amount || 149.90),
+    Adults: numGuests,
+    Status: 1,
+    InternalNotes: `Reserva StaffStay Permuta Hoteleira — Hóspede: ${guestName}`
+  });
+
   const xmlString = `<?xml version="1.0" encoding="utf-8"?>
 <Reserva 
   Numero="${reservationCode}" 
@@ -77,10 +92,10 @@ function buildESolutionXml(booking) {
   ValorPensao="0.00" 
   ValorAConfirmar="0.00" 
   SegmentoMercado="13" 
-  Tarifario="" 
+  Tarifario="TARIFA_STAFFSTAY_PERMUTA" 
   DataBaseTarifa="${nowStr}" 
   TipoPensao="CF" 
-  OrigemReserva="10" 
+  OrigemReserva="STAFFSTAY_PERMUTA" 
   Desconto="0.00" 
   Cofre="N" 
   GaranteNoShow="S" 
@@ -90,13 +105,15 @@ function buildESolutionXml(booking) {
   EmpresaHospedagem="${booking.employer_cnpj || '18271'}" 
   VoucherEmpresa="${reservationCode}" 
   Observacao="Reserva StaffStay Permuta Hoteleira — Voucher Isento de Diárias — ${guestName}" 
-  ObservacaoIntegracao="Integrado com Sucesso via StaffStay Engine PMS Adapter" 
+  ObservacaoIntegracao="Integrado com Sucesso via StaffStay Engine PMS Adapter (Canal: StaffStay)" 
   Cidade="279" 
   EmailReservante="${booking.email || 'hospede@staffstay.com.br'}" 
-  ChannelManager="STAFFSTAY_PMS" 
+  ChannelManager="STAFFSTAY" 
+  ChannelName="StaffStay"
   OmnibeesPropertyId="${booking.hotel_id || '9924'}" 
   OtaId="${reservationCode}" 
   ReservationUID="${booking.id || '1001'}"
+  JsonIntegracao="${jsonIntegracaoPayload.replace(/"/g, '&quot;')}"
 >
   <Hospedes>
     <Hospede Id="${booking.user_id || '101'}" Nome="${guestName}" Principal="S" FaixaEtaria="AD" Incognito="N" />
@@ -110,6 +127,8 @@ ${dailyPensionsXml.join('\n')}
   <Requerimentos></Requerimentos>
   <ServicosHotel></ServicosHotel>
 </Reserva>`;
+
+  return xmlString;
 
   return xmlString;
 }

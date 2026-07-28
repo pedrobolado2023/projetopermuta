@@ -37,8 +37,8 @@ router.get('/bookings/:id/xml', async (req, res, next) => {
       bookingData = {
         id: id,
         reservation_code: id.startsWith('STAY') ? id : `STAY-${id.slice(0, 6).toUpperCase()}`,
-        guest_name: 'Dantas Rennan',
-        email: 'drenna.836631@guest.booking.com',
+        guest_name: 'Pedro Henrique Pereira',
+        email: 'pedro.pereira@staffstay.com.br',
         phone: '(11) 99999-8888',
         employer_cnpj: '18.271.000/0001-90',
         check_in_date: '2026-09-03T14:00:00Z',
