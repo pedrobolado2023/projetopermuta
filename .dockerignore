@@ -1,0 +1,28 @@
+# ── Git ──────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ── Variáveis de ambiente (NUNCA incluir no build) ───────────────
+**/.env
+**/.env.*
+!**/.env.example
+
+# ── Dependências locais (reinstaladas no build) ──────────────────
+**/node_modules
+
+# ── Frontend / App (não faz parte do container do backend) ───────
+app/
+docs/
+
+# ── Docker / Compose (não necessário dentro da imagem) ───────────
+docker-compose.yml
+Dockerfile
+backend/Dockerfile
+nginx.conf
+nixpacks.toml
+
+# ── Logs e temporários ───────────────────────────────────────────
+**/*.log
+**/logs/
+**/.DS_Store
+**/Thumbs.db
