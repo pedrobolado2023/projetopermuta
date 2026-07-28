@@ -32,11 +32,11 @@
         <li><a href="/admin-panel" class="nav-link">Governança</a></li>
       </ul>
 
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="user-badge">
-          <span>👤 Pedro H.</span>
-          <span class="tier-pill">GOLD STAFF</span>
-        </div>
+      <div style="display: flex; align-items: center; gap: 12px;" id="nav-auth-container">
+        <!-- Rendered dynamically by app.js: User Badge or Login Button -->
+        <button class="btn-primary" onclick="openAuthModal()" style="font-size: 0.85rem; padding: 8px 18px;">
+          🔑 Entrar / Cadastrar
+        </button>
       </div>
     </div>
   </header>
@@ -135,6 +135,133 @@
       <p style="font-size: 0.82rem;">Todos os direitos reservados. Ecossistema exclusivo de viagens para a indústria hoteleira.</p>
     </div>
   </footer>
+
+  <!-- MODAL DE AUTENTICAÇÃO E CADASTRO COMPLETO -->
+  <div id="auth-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
+      
+      <!-- Alternador de Abas: Login vs Cadastro -->
+      <div class="auth-tab-group">
+        <button class="auth-tab-btn active" id="tab-btn-login" onclick="switchAuthTab('login')">Entrar na Conta</button>
+        <button class="auth-tab-btn" id="tab-btn-register" onclick="switchAuthTab('register')">Criar Conta Hoteleiro</button>
+      </div>
+
+      <!-- ABA 1: FORMULÁRIO DE LOGIN -->
+      <form id="form-auth-login" onsubmit="handleLoginSubmit(event)">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="font-size: 1.4rem; margin-bottom: 6px;">Bem-vindo de volta!</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Acesse sua conta verificada para reservar diárias isentas.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">E-MAIL OU CPF</label>
+          <input type="text" id="login-email" class="form-control" placeholder="seu@email.com ou 000.000.000-00" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SENHA DE ACESSO</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; margin-top: 10px;">
+          Entrar na Plataforma ➔
+        </button>
+      </form>
+
+      <!-- ABA 2: CADASTRO DE HÓSPEDE STAFF EM 3 ETAPAS -->
+      <div id="form-auth-register" style="display: none;">
+        <!-- Indicador de Passos -->
+        <div class="stepper-bar">
+          <div class="stepper-step active" id="step-node-1">
+            <div class="step-number">1</div>
+            <span class="step-label">Pessoal</span>
+          </div>
+          <div class="stepper-step" id="step-node-2">
+            <div class="step-number">2</div>
+            <span class="step-label">Empresa</span>
+          </div>
+          <div class="stepper-step" id="step-node-3">
+            <div class="step-number">3</div>
+            <span class="step-label">Biometria</span>
+          </div>
+        </div>
+
+        <!-- PASSO 1: DADOS PESSOAIS -->
+        <div id="reg-step-1">
+          <div class="form-group">
+            <label class="form-label">NOME COMPLETO *</label>
+            <input type="text" id="reg-full-name" class="form-control" placeholder="Ex: Pedro Henrique Silva" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPF *</label>
+            <input type="text" id="reg-cpf" class="form-control" placeholder="000.000.000-00" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-MAIL *</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="pedro@hotel.com.br" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WHATSAPP / TELEFONE *</label>
+            <input type="text" id="reg-whatsapp" class="form-control" placeholder="(11) 99999-9999" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SENHA DE ACESSO *</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="Mínimo 8 caracteres (1 maiúscula, 1 número)" required>
+          </div>
+          <button class="btn-primary" style="width: 100%; padding: 12px;" onclick="nextRegisterStep(2)">Continuar para Dados Empregatícios ➔</button>
+        </div>
+
+        <!-- PASSO 2: DADOS EMPREGATÍCIOS -->
+        <div id="reg-step-2" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">EMPRESA / HOTEL ONDE TRABALHA *</label>
+            <input type="text" id="reg-employer-name" class="form-control" placeholder="Ex: Grand Hyatt São Paulo" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNPJ DA EMPRESA *</label>
+            <input type="text" id="reg-employer-cnpj" class="form-control" placeholder="00.000.000/0001-00" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SEU CARGO NA HOTELARIA *</label>
+            <input type="text" id="reg-job-position" class="form-control" placeholder="Ex: Recepcionista / Governança / Gerente" required>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="btn-secondary" style="flex: 1;" onclick="nextRegisterStep(1)">← Voltar</button>
+            <button class="btn-primary" style="flex: 2;" onclick="nextRegisterStep(3)">Ir para Comprovante & Selfie ➔</button>
+          </div>
+        </div>
+
+        <!-- PASSO 3: COMPROVANTE & SELFIE BIOMÉTRICA -->
+        <div id="reg-step-3" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">IMAGEM DO COMPROVANTE DE TRABALHO * (CRACHÁ OU HOLERITE)</label>
+            <div class="upload-dropzone" onclick="document.getElementById('input-file-doc').click()">
+              <span style="font-size: 1.8rem;">📄</span>
+              <p style="font-size: 0.85rem; color: var(--color-primary); font-weight: 700; margin-top: 4px;" id="doc-label">Clique para selecionar imagem do comprovante</p>
+              <input type="file" id="input-file-doc" accept="image/*" style="display: none;" onchange="handleDocUpload(event)">
+              <img id="preview-doc" class="upload-preview-img" style="display: none;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SELFIE DO SEU ROSTO * (PARA CONFIRMAÇÃO DE RESERVA)</label>
+            <div class="upload-dropzone" onclick="document.getElementById('input-file-selfie').click()">
+              <span style="font-size: 1.8rem;">📸</span>
+              <p style="font-size: 0.85rem; color: var(--color-primary); font-weight: 700; margin-top: 4px;" id="selfie-label">Clique para carregar ou tirar uma selfie</p>
+              <input type="file" id="input-file-selfie" accept="image/*" style="display: none;" onchange="handleSelfieUpload(event)">
+              <img id="preview-selfie" class="upload-preview-img" style="display: none;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-secondary" style="flex: 1;" onclick="nextRegisterStep(2)">← Voltar</button>
+            <button class="btn-primary" style="flex: 2;" onclick="handleRegisterSubmit()">Finalizar Cadastro & Validar ➔</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

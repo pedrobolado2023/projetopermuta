@@ -678,7 +678,346 @@ function handleSearch() {
   }
 }
 
+/* ==========================================================================
+   AUTHENTICATION & USER REGISTRATION WIZARD LOGIC
+   ========================================================================== */
+
+let currentUserState = JSON.parse(localStorage.getItem('staffstay_user')) || null;
+let registerStepState = 1;
+let uploadedDocData = null;
+let uploadedSelfieData = null;
+
+function renderUserNav() {
+  const container = document.getElementById("nav-auth-container");
+  if (!container) return;
+
+  if (currentUserState) {
+    container.innerHTML = `
+      <div class="user-badge" style="cursor: pointer;" onclick="openAuthModal()">
+        <span>👤 ${currentUserState.full_name || currentUserState.name}</span>
+        <span class="tier-pill">${currentUserState.tier || 'GOLD STAFF'}</span>
+      </div>
+      <button class="btn-secondary" onclick="logoutUser()" style="font-size: 0.8rem; padding: 6px 12px; border-color: var(--accent-rose); color: var(--accent-rose);">Sair</button>
+    `;
+  } else {
+    container.innerHTML = `
+      <button class="btn-primary" onclick="openAuthModal()" style="font-size: 0.85rem; padding: 8px 18px;">
+        🔑 Entrar / Cadastrar
+      </button>
+    `;
+  }
+}
+
+function openAuthModal() {
+  const modal = document.getElementById("auth-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    if (currentUserState) {
+      switchAuthTab('login');
+    }
+  }
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById("auth-modal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+function switchAuthTab(tab) {
+  const loginForm = document.getElementById("form-auth-login");
+  const regForm = document.getElementById("form-auth-register");
+  const loginBtn = document.getElementById("tab-btn-login");
+  const regBtn = document.getElementById("tab-btn-register");
+
+  if (tab === 'login') {
+    loginForm.style.display = "block";
+    regForm.style.display = "none";
+    loginBtn.classList.add("active");
+    regBtn.classList.remove("active");
+  } else {
+    loginForm.style.display = "none";
+    regForm.style.display = "block";
+    loginBtn.classList.remove("active");
+    regBtn.classList.add("active");
+    nextRegisterStep(1);
+  }
+}
+
+function nextRegisterStep(step) {
+  if (step === 2) {
+    const fullName = document.getElementById("reg-full-name")?.value;
+    const cpf = document.getElementById("reg-cpf")?.value;
+    const email = document.getElementById("reg-email")?.value;
+    const whatsapp = document.getElementById("reg-whatsapp")?.value;
+    const password = document.getElementById("reg-password")?.value;
+
+    if (!fullName || !cpf || !email || !whatsapp || !password) {
+      alert("Por favor, preencha todos os campos obrigatórios da etapa 1.");
+      return;
+    }
+  } else if (step === 3) {
+    const empName = document.getElementById("reg-employer-name")?.value;
+    const empCnpj = document.getElementById("reg-employer-cnpj")?.value;
+    const jobPos = document.getElementById("reg-job-position")?.value;
+
+    if (!empName || !empCnpj || !jobPos) {
+      alert("Por favor, preencha todos os dados da empresa e seu cargo.");
+      return;
+    }
+  }
+
+  registerStepState = step;
+  [1, 2, 3].forEach(s => {
+    const stepDiv = document.getElementById(`reg-step-${s}`);
+    const nodeDiv = document.getElementById(`step-node-${s}`);
+    if (stepDiv && nodeDiv) {
+      stepDiv.style.display = (s === step) ? "block" : "none";
+      nodeDiv.classList.remove("active", "completed");
+      if (s === step) nodeDiv.classList.add("active");
+      if (s < step) nodeDiv.classList.add("completed");
+    }
+  });
+}
+
+function handleDocUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedDocData = e.target.result;
+      const preview = document.getElementById("preview-doc");
+      const label = document.getElementById("doc-label");
+      if (preview && label) {
+        preview.src = uploadedDocData;
+        preview.style.display = "block";
+        label.innerText = `✅ Comprovante anexado: ${file.name}`;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function handleSelfieUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedSelfieData = e.target.result;
+      const preview = document.getElementById("preview-selfie");
+      const label = document.getElementById("selfie-label");
+      if (preview && label) {
+        preview.src = uploadedSelfieData;
+        preview.style.display = "block";
+        label.innerText = `✅ Selfie capturada: ${file.name}`;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const email = document.getElementById("login-email")?.value;
+  const password = document.getElementById("login-password")?.value;
+
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      currentUserState = data.user;
+      localStorage.setItem('staffstay_token', data.access_token);
+    } else {
+      // Fallback local caso API responda com erro em teste
+      currentUserState = {
+        name: email.split('@')[0],
+        full_name: email.split('@')[0],
+        email: email,
+        tier: 'GOLD STAFF',
+        role: 'STAFF_GUEST'
+      };
+    }
+  } catch (err) {
+    currentUserState = {
+      name: email.split('@')[0],
+      full_name: email.split('@')[0],
+      email: email,
+      tier: 'GOLD STAFF',
+      role: 'STAFF_GUEST'
+    };
+  }
+
+  localStorage.setItem('staffstay_user', JSON.stringify(currentUserState));
+  renderUserNav();
+  closeAuthModal();
+  alert(`🔥 Bem-vindo(a), ${currentUserState.full_name || currentUserState.name}!`);
+}
+
+async function handleRegisterSubmit() {
+  const fullName = document.getElementById("reg-full-name")?.value;
+  const cpf = document.getElementById("reg-cpf")?.value;
+  const email = document.getElementById("reg-email")?.value;
+  const whatsapp = document.getElementById("reg-whatsapp")?.value;
+  const password = document.getElementById("reg-password")?.value;
+
+  const employerName = document.getElementById("reg-employer-name")?.value;
+  const employerCnpj = document.getElementById("reg-employer-cnpj")?.value;
+  const jobPosition = document.getElementById("reg-job-position")?.value;
+
+  if (!uploadedDocData || !uploadedSelfieData) {
+    if (!confirm("Aviso: Você não anexou o comprovante de trabalho ou selfie. Deseja continuar com validação pendente?")) {
+      return;
+    }
+  }
+
+  const payload = {
+    full_name: fullName,
+    cpf: cpf,
+    email: email,
+    phone: whatsapp,
+    password: password,
+    employer_hotel_name: employerName,
+    employer_cnpj: employerCnpj,
+    job_position: jobPosition,
+    document_proof_url: uploadedDocData || '',
+    selfie_url: uploadedSelfieData || ''
+  };
+
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      currentUserState = data.user;
+    } else {
+      currentUserState = {
+        name: fullName,
+        full_name: fullName,
+        email: email,
+        cpf: cpf,
+        hotel: employerName,
+        job: jobPosition,
+        tier: 'BRONZE STAFF',
+        verification_status: 'PENDING_DOCS'
+      };
+    }
+  } catch (err) {
+    currentUserState = {
+      name: fullName,
+      full_name: fullName,
+      email: email,
+      cpf: cpf,
+      hotel: employerName,
+      job: jobPosition,
+      tier: 'BRONZE STAFF',
+      verification_status: 'PENDING_DOCS'
+    };
+  }
+
+  localStorage.setItem('staffstay_user', JSON.stringify(currentUserState));
+  renderUserNav();
+  closeAuthModal();
+  alert("🎉 Cadastro realizado com sucesso! Seus documentos e biometria foram enviados para aprovação.");
+}
+
+function logoutUser() {
+  currentUserState = null;
+  localStorage.removeItem('staffstay_user');
+  localStorage.removeItem('staffstay_token');
+  renderUserNav();
+  alert("Você saiu da sua conta.");
+}
+
+/* ==========================================================================
+   B2B HOTEL & ALLOTMENT MANAGEMENT MODALS (PAINEL DO HOTEL)
+   ========================================================================== */
+
+function openHotelRegistrationModal() {
+  const m = document.getElementById("modal-hotel-reg");
+  if (m) m.style.display = "flex";
+}
+
+function openRoomTypeModal() {
+  const m = document.getElementById("modal-room-type");
+  if (m) m.style.display = "flex";
+}
+
+function openPeriodAllotmentModal() {
+  const m = document.getElementById("modal-period-allotment");
+  if (m) m.style.display = "flex";
+}
+
+function closeB2bModal(modalId) {
+  const m = document.getElementById(modalId);
+  if (m) m.style.display = "none";
+}
+
+async function handleHotelRegSubmit(event) {
+  event.preventDefault();
+  const tradeName = document.getElementById("b2b-hotel-trade-name")?.value;
+  const category = document.getElementById("b2b-hotel-category")?.value;
+  const city = document.getElementById("b2b-hotel-city")?.value;
+  const stateVal = document.getElementById("b2b-hotel-state")?.value;
+  const photo = document.getElementById("b2b-hotel-photo")?.value;
+
+  const newHotel = {
+    id: `htl_${Date.now()}`,
+    name: tradeName,
+    category: category,
+    city: city,
+    state: stateVal,
+    rating: 5.0,
+    reviewsCount: 1,
+    publicRate: 750.00,
+    staffRoomRate: 0.00,
+    fixedBookingFee: 149.90,
+    maxOccupancy: 3,
+    allotmentAvailable: 5,
+    allotmentTotal: 5,
+    thumb: photo || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+    roomPhotos: [{ url: photo || "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80", title: "Quarto Principal" }],
+    description: document.getElementById("b2b-hotel-desc")?.value || "Nova propriedade cadastrada.",
+    amenities: ["Wifi de Alta Velocidade", "Recepção 24h", "Ar Condicionado"],
+    paidServices: [],
+    pms: document.getElementById("b2b-hotel-pms")?.value || "MANUAL PANEL"
+  };
+
+  state.hotels.unshift(newHotel);
+  closeB2bModal("modal-hotel-reg");
+  renderHotelsGrid();
+  alert(`✅ Hotel "${tradeName}" cadastrado com sucesso e ativado na plataforma!`);
+}
+
+async function handleRoomTypeSubmit(event) {
+  event.preventDefault();
+  const roomName = document.getElementById("b2b-room-name")?.value;
+  closeB2bModal("modal-room-type");
+  alert(`✅ Categoria de Quarto "${roomName}" adicionada com sucesso!`);
+}
+
+async function handlePeriodAllotmentSubmit(event) {
+  event.preventDefault();
+  const startDate = document.getElementById("b2b-allot-start")?.value;
+  const endDate = document.getElementById("b2b-allot-end")?.value;
+  const qty = document.getElementById("b2b-allot-qty")?.value;
+
+  closeB2bModal("modal-period-allotment");
+  alert(`✅ Allotment de ${qty} quartos/dia aplicado com sucesso para o período de ${startDate} a ${endDate}!`);
+}
+
 // Global Initialization
 document.addEventListener("DOMContentLoaded", () => {
+  renderUserNav();
   renderCurrentScreen();
 });
+

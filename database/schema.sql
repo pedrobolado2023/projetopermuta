@@ -122,6 +122,7 @@ CREATE TABLE users (
     
     -- Vínculo Empregatício Hoteleiro
     employer_hotel_name VARCHAR(255) NOT NULL,
+    employer_cnpj VARCHAR(18),
     employer_hotel_id UUID REFERENCES hotels(id) ON DELETE SET NULL,
     job_position VARCHAR(100) NOT NULL, -- Recepcionista, Governança, Gerente, etc.
     employment_start_date DATE,

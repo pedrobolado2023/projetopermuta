@@ -220,4 +220,94 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+// ─── POST /api/hotels (Cadastro B2B de Hotel) ─────────────────────────────────
+router.post('/', async (req, res, next) => {
+  try {
+    const { corporate_name, cnpj, trade_name, category, description, email, phone, zip_code, address_line, city, state, legal_representative_name, legal_representative_cpf, pms_type, amenities, photos } = req.body;
+
+    if (!corporate_name || !cnpj || !trade_name || !email || !city || !state) {
+      return res.status(400).json({ error: 'bad_request', message: 'Preencha todos os campos obrigatórios do hotel.' });
+    }
+
+    const existing = await db.query('SELECT id FROM hotels WHERE cnpj = $1 LIMIT 1', [cnpj]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'conflict', message: 'CNPJ já cadastrado.' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO hotels 
+        (corporate_name, cnpj, trade_name, category, description, email, phone, zip_code, address_line, city, state, legal_representative_name, legal_representative_cpf, pms_type, amenities, photos, bank_code, bank_agency, bank_account, pix_key, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, '000', '0000', '00000-0', $6, 'ACTIVE')
+       RETURNING *`,
+      [corporate_name, cnpj, trade_name, category || 'Hotel', description || '', email, phone || '', zip_code || '00000-000', address_line || '', city, state, legal_representative_name || trade_name, legal_representative_cpf || '000.000.000-00', pms_type || 'MANUAL_PANEL', JSON.stringify(amenities || []), JSON.stringify(photos || [])]
+    );
+
+    return res.status(201).json({ message: 'Hotel cadastrado com sucesso!', hotel: result.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── POST /api/hotels/:id/rooms (Cadastro de Tipo de Quarto) ───────────────────
+router.post('/:id/rooms', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, description, max_occupancy, suggested_staff_rate, photos, amenities } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'bad_request', message: 'Nome do quarto é obrigatório.' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO room_types (hotel_id, name, description, max_occupancy, base_marginal_cost, suggested_staff_rate, photos, amenities)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [id, name, description || '', max_occupancy || 2, 0.00, suggested_staff_rate || 0.00, JSON.stringify(photos || []), JSON.stringify(amenities || [])]
+    );
+
+    return res.status(201).json({ message: 'Tipo de quarto adicionado!', room: result.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── POST /api/hotels/:id/allotments (Alimentar Allotment por Período) ─────────
+router.post('/:id/allotments', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { room_type_id, start_date, end_date, quantity, nightly_rate, is_blackout } = req.body;
+
+    if (!room_type_id || !start_date || !end_date) {
+      return res.status(400).json({ error: 'bad_request', message: 'Tipo de quarto e período (início e fim) são obrigatórios.' });
+    }
+
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    const qty = parseInt(quantity || 0, 10);
+    const rate = parseFloat(nightly_rate || 0);
+
+    const created = [];
+    const curr = new Date(start);
+
+    while (curr <= end) {
+      const dateStr = curr.toISOString().split('T')[0];
+      const resVal = await db.query(
+        `INSERT INTO allotments (room_type_id, hotel_id, allotment_date, quantity_available, nightly_rate, is_blackout)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (room_type_id, allotment_date) 
+         DO UPDATE SET quantity_available = EXCLUDED.quantity_available, nightly_rate = EXCLUDED.nightly_rate, is_blackout = EXCLUDED.is_blackout, updated_at = NOW()
+         RETURNING *`,
+        [room_type_id, id, dateStr, qty, rate, !!is_blackout]
+      );
+      created.push(resVal.rows[0]);
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    return res.status(201).json({ message: `Allotment de ${created.length} dias atualizado com sucesso!`, allotments: created });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
+

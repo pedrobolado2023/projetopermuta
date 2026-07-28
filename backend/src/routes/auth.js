@@ -35,12 +35,15 @@ const registerSchema = Joi.object({
                           .required()
                           .messages({ 'string.pattern.base': 'Senha deve ter ao menos 1 maiúscula, 1 minúscula e 1 número.' }),
   employer_hotel_name:  Joi.string().min(3).max(255).required(),
+  employer_cnpj:        Joi.string().max(18).optional().allow(''),
   job_position:         Joi.string().min(2).max(100).required(),
+  document_proof_url:   Joi.string().optional().allow(''),
+  selfie_url:           Joi.string().optional().allow(''),
   referral_code_used:   Joi.string().alphanum().max(20).optional(),
 });
 
 const loginSchema = Joi.object({
-  email:    Joi.string().email().lowercase().required(),
+  email:    Joi.string().required(), // Aceita E-mail ou CPF
   password: Joi.string().required(),
 });
 
@@ -56,7 +59,7 @@ router.post('/register', authRateLimiter, async (req, res, next) => {
       });
     }
 
-    const { full_name, cpf, email, phone, password, employer_hotel_name, job_position, referral_code_used } = value;
+    const { full_name, cpf, email, phone, password, employer_hotel_name, employer_cnpj, job_position, document_proof_url, selfie_url, referral_code_used } = value;
 
     // 2. Verificar se e-mail ou CPF já existem
     const existing = await db.query(
@@ -88,11 +91,22 @@ router.post('/register', authRateLimiter, async (req, res, next) => {
     // 6. Inserir usuário
     const result = await db.query(
       `INSERT INTO users 
-        (full_name, cpf, email, phone, password_hash, employer_hotel_name, job_position, referral_code, referred_by_user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (full_name, cpf, email, phone, password_hash, employer_hotel_name, employer_cnpj, job_position, referral_code, referred_by_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id, full_name, email, role, verification_status, gamification_tier, referral_code, created_at`,
-      [full_name, cpf, email, phone, password_hash, employer_hotel_name, job_position, referral_code, referred_by_user_id]
+      [full_name, cpf, email, phone, password_hash, employer_hotel_name, employer_cnpj || null, job_position, referral_code, referred_by_user_id]
     );
+
+    const user = result.rows[0];
+
+    // 6b. Se houver imagens de comprovante/selfie, salvar registro em user_verifications
+    if (document_proof_url || selfie_url) {
+      await db.query(
+        `INSERT INTO user_verifications (user_id, document_type, document_front_s3_path, document_back_s3_path, selfie_s3_path, employment_proof_s3_path)
+         VALUES ($1, 'PROOF_WORK', $2, $2, $3, $2)`,
+        [user.id, document_proof_url || '', selfie_url || '']
+      );
+    }
 
     const user = result.rows[0];
 

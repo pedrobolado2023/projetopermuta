@@ -41,8 +41,9 @@
         <p style="color: var(--text-muted); font-size: 0.95rem;">Gestão de Allotment e sincronização com PMS Omnibees XML.</p>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="btn-secondary" onclick="alert('Iniciando sincronização forçada com Omnibees XML...')">🔄 Sincronizar PMS</button>
-        <button class="btn-primary" onclick="alert('Abertura de Allotment de Emergência ativada!')">⚡ Liberação IA</button>
+        <button class="btn-secondary" onclick="openHotelRegistrationModal()">🏢 Cadastrar / Editar Hotel</button>
+        <button class="btn-secondary" onclick="openRoomTypeModal()">🛏️ Novo Tipo de Quarto</button>
+        <button class="btn-primary" onclick="openPeriodAllotmentModal()">📅 Lançar Allotment por Período</button>
       </div>
     </div>
 
@@ -191,6 +192,187 @@
   <footer style="border-top: 1px solid var(--glass-border); padding: 30px 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; background: #FFFFFF;">
     StaffStay Tecnologia da Informação S.A. © 2026. Todos os direitos reservados.
   </footer>
+
+  <!-- MODAL 1: CADASTRO / EDIÇÃO COMPLETA DO HOTEL -->
+  <div id="modal-hotel-reg" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 680px;">
+      <button class="modal-close-btn" onclick="closeB2bModal('modal-hotel-reg')">✕</button>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <h2 style="font-size: 1.5rem;">Cadastro Completo da Propriedade (Hotel Partner)</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Preencha os dados oficiais do hotel para autorizar a liberação de quartos no canal privado.</p>
+      </div>
+      <form onsubmit="handleHotelRegSubmit(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">RAZÃO SOCIAL *</label>
+            <input type="text" id="b2b-hotel-corp-name" class="form-control" placeholder="Ex: Grand Palace Hotelaria Ltda" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNPJ *</label>
+            <input type="text" id="b2b-hotel-cnpj" class="form-control" placeholder="00.000.000/0001-00" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">NOME FANTASIA *</label>
+            <input type="text" id="b2b-hotel-trade-name" class="form-control" placeholder="Ex: Grand Palace Resort Búzios" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CATEGORIA DE HOSPEDAGEM *</label>
+            <select id="b2b-hotel-category" class="form-control">
+              <option value="Resort 5 Estrelas">Resort 5 Estrelas</option>
+              <option value="Resort 4 Estrelas">Resort 4 Estrelas</option>
+              <option value="Pousada Boutique">Pousada Boutique</option>
+              <option value="Hotel Urbano Executivo">Hotel Urbano Executivo</option>
+              <option value="Flat / Aparthotel">Flat / Aparthotel</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DESCRIÇÃO DA PROPRIEDADE</label>
+          <textarea id="b2b-hotel-desc" class="form-control" rows="3" placeholder="Descreva os diferenciais, estrutura e localização do hotel..."></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">E-MAIL OFICIAL *</label>
+            <input type="email" id="b2b-hotel-email" class="form-control" placeholder="contato@hotel.com.br" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">TELEFONE / RECEPÇÃO</label>
+            <input type="text" id="b2b-hotel-phone" class="form-control" placeholder="(22) 2623-0000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CONECTOR PMS</label>
+            <select id="b2b-hotel-pms" class="form-control">
+              <option value="OMNIBEES XML">OMNIBEES XML</option>
+              <option value="DESBRAVADOR REST">DESBRAVADOR REST</option>
+              <option value="TOTVS CMNET">TOTVS CMNET</option>
+              <option value="CLOUDBEDS API">CLOUDBEDS API</option>
+              <option value="MANUAL PANEL">PAINEL MANUAL STAFFSTAY</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CEP *</label>
+            <input type="text" id="b2b-hotel-zip" class="form-control" placeholder="28950-000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CIDADE *</label>
+            <input type="text" id="b2b-hotel-city" class="form-control" placeholder="Ex: Armação dos Búzios" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">UF *</label>
+            <input type="text" id="b2b-hotel-state" class="form-control" placeholder="RJ" maxlength="2" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL DA FOTO PRINCIPAL (CAPA)</label>
+          <input type="url" id="b2b-hotel-photo" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; margin-top: 10px;">
+          Salvar Dados do Hotel ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CADASTRO DE TIPO DE QUARTO -->
+  <div id="modal-room-type" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeB2bModal('modal-room-type')">✕</button>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <h2 style="font-size: 1.4rem;">Cadastrar Categoria de Acomodação</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Adicione os tipos de quarto disponíveis na sua propriedade.</p>
+      </div>
+      <form onsubmit="handleRoomTypeSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">NOME DA CATEGORIA *</label>
+          <input type="text" id="b2b-room-name" class="form-control" placeholder="Ex: Suíte Master Vista Mar" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">CAPACIDADE MÁXIMA (PESSOAS) *</label>
+            <input type="number" id="b2b-room-occupancy" class="form-control" value="2" min="1" max="10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">DIÁRIA PÚBLICA DE REFERÊNCIA (R$)</label>
+            <input type="number" id="b2b-room-rate" class="form-control" placeholder="850.00" step="0.01">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DESCRIÇÃO DO QUARTO</label>
+          <input type="text" id="b2b-room-desc" class="form-control" placeholder="Cama King, Hidromassagem, Varanda privativa...">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; margin-top: 10px;">
+          Adicionar Categoria de Quarto ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: LANÇAMENTO DE ALLOTMENT POR PERÍODO -->
+  <div id="modal-period-allotment" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeB2bModal('modal-period-allotment')">✕</button>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <h2 style="font-size: 1.4rem;">Lançar Allotment por Período / Intervalo de Datas</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Defina a quantidade de quartos liberados para um intervalo de dias.</p>
+      </div>
+      <form onsubmit="handlePeriodAllotmentSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">CATEGORIA DE QUARTO *</label>
+          <select id="b2b-allot-room" class="form-control" required>
+            <option value="room_01">Deluxe Vista Mar (Búzios)</option>
+            <option value="room_02">Suíte Master Alpina (Gramado)</option>
+            <option value="room_03">Bangalô Pé na Areia (Porto de Galinhas)</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">DATA INÍCIO *</label>
+            <input type="date" id="b2b-allot-start" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">DATA FIM *</label>
+            <input type="date" id="b2b-allot-end" class="form-control" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">QUARTOS DISPONÍVEIS POR DIA *</label>
+            <input type="number" id="b2b-allot-qty" class="form-control" value="4" min="0" max="50" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">VALOR DA DIÁRIA PARA STAFF (R$)</label>
+            <input type="number" id="b2b-allot-rate" class="form-control" value="0.00" step="0.01">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700; color: var(--color-primary);">
+            <input type="checkbox" id="b2b-allot-blackout" style="width: 18px; height: 18px; accent-color: var(--accent-rose);">
+            Marcar Período como Blackout (Bloquear Reservas)
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; margin-top: 10px;">
+          Aplicar Allotment no Período ➔
+        </button>
+      </form>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
